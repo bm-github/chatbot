@@ -1,0 +1,1 @@
+[{"role": "user", "content": "def code_system_message():\n    global system_message\n    system_message = \"Breakdown the submitted code\"\n    send_message(entry)  # Send the prompt with the updated system message"}, {"role": "assistant", "content": "Defines a function named `code_system_message`."}]

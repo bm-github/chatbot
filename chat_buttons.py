@@ -11,7 +11,7 @@ api_key_window = None
 api_key_entry = None
 
 # Define the system message
-system_message = "You are a friendly chatbot called BrendenBot."
+system_message = "You are a friendly chatbot affectionately called BrendenBot."
 
 # Initialize the conversation history
 conversation = []
