@@ -36,7 +36,7 @@ def code_system_message():
 
 def profile_system_message():
     global system_message
-    system_message = "You will create a professional profile up to 150 words in British English. Write in the third person. Avoid using is a highly skilled or highly experienced in the opening sentence and avoid repitition."
+    system_message = "You will create a professional profile up to 150 words in British English. Write in the third person. Avoid using 'is a highly skilled' or 'highly experienced' in the opening sentence and avoid repitition."
     send_message(entry)  # Send the prompt with the updated system message
 
 
@@ -221,7 +221,7 @@ def initialize_chat_window():
     global chat_log, entry, file_listbox, conversation
 
     root = tk.Tk()
-    root.title("OpenAI Brendenbot")
+    root.title("OpenAI BrendenBot")
 
     file_frame = tk.Frame(root, width=200)
     file_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
