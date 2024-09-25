@@ -3,7 +3,7 @@ name: Generate README
 on:
   push:
     branches:
-      - your-branch-name  # Trigger this action on specific branch push
+      - main # Trigger this action on specific branch push
   workflow_dispatch:      # Allows manual trigger from GitHub Actions UI
 
 jobs:
