@@ -1,0 +1,57 @@
+name: Generate README
+
+on:
+  push:
+    branches:
+      - your-branch-name  # Trigger this action on specific branch push
+  workflow_dispatch:      # Allows manual trigger from GitHub Actions UI
+
+jobs:
+  generate-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: your-branch-name  # Ensure the correct branch is checked out
+
+      # Step 2: Set up Python environment
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # Step 3: Install llm and AI dependencies
+      - name: Install llm and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install llm llm-claude-3  # Ensure both llm and Claude are installed
+
+      # Step 4: Set up AI API key in environment
+      - name: Set AI_API_KEY environment variable
+        run: echo "AI_API_KEY=${{ secrets.AI_API_KEY }}" >> $GITHUB_ENV
+
+      # Step 5: Generate the README.md file using llm with AI API
+      - name: Generate README.md using AI
+        run: |
+          # Command runs llm using AI to create README.md
+          llm 'write a markdown README.md file for this project' > README.md
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}  # Provide API key
+
+      # Step 6: Configure Git for commit
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Step 7: Commit the changes to the README.md file
+      - name: Commit changes
+        run: |
+          git add README.md
+          git commit -m "Generate markdown README.md using AI"
+          git push origin your-branch-name
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Allow GitHub commit authentication
