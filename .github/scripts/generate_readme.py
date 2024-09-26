@@ -4,19 +4,24 @@ import sys
 
 def generate_readme():
     try:
-        # Initialize the Claude client
-        client = anthropic.Client(api_key=os.environ['AI_API_KEY'])
+        # Initialize the Anthropic client
+        client = anthropic.Anthropic(api_key=os.environ['AI_API_KEY'])
         
         # Generate content for README
-        response = client.completion(
-            prompt="Generate a README.md file for a GitHub repository. Include sections for Project Description, Installation, Usage, and Contributing.",
-            model="claude-3-5-sonnet-20240620",  # Use the latest available model
-            max_tokens_to_sample=1000,
+        message = client.messages.create(
+            model="claude-3-opus-20240229",
+            max_tokens=1000,
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Generate a README.md file for a GitHub repository. Include sections for Project Description, Installation, Usage, and Contributing."
+                }
+            ]
         )
         
         # Write the generated content to README.md
         with open('README.md', 'w') as f:
-            f.write(response.completion)
+            f.write(message.content[0].text)
         
         print("README.md generated successfully.")
     except Exception as e:
