@@ -8,32 +8,24 @@ def get_file_contents(file_path):
         return file.read()
 
 def scan_repository():
-    terraform_files = glob.glob('**/*.tf', recursive=True)
-    shell_scripts = glob.glob('**/*.sh', recursive=True)
-    python_files = glob.glob('**/*.py', recursive=True)
-    tfvars_files = glob.glob('**/*.tfvars', recursive=True)
+    file_types = {
+        'Terraform Files': '**/*.tf',
+        'Terraform Variables Files': '**/*.tfvars',
+        'Shell Scripts': '**/*.sh',
+        'Python Scripts': '**/*.py'
+    }
     
-    repo_content = "Terraform Files:\n"
-    for tf_file in terraform_files:
-        repo_content += f"\n--- {tf_file} ---\n"
-        repo_content += get_file_contents(tf_file)
+    repo_content = ""
     
-    repo_content += "\n\nTerraform Variables Files:\n"
-    for tfvars_file in tfvars_files:
-        repo_content += f"\n--- {tfvars_file} ---\n"
-        repo_content += get_file_contents(tfvars_file)
+    for file_type, glob_pattern in file_types.items():
+        files = glob.glob(glob_pattern, recursive=True)
+        if files:
+            repo_content += f"\n{file_type}:\n"
+            for file in files:
+                repo_content += f"\n--- {file} ---\n"
+                repo_content += get_file_contents(file)
     
-    repo_content += "\n\nShell Scripts:\n"
-    for sh_file in shell_scripts:
-        repo_content += f"\n--- {sh_file} ---\n"
-        repo_content += get_file_contents(sh_file)
-    
-    repo_content += "\n\nPython Scripts:\n"
-    for py_file in python_files:
-        repo_content += f"\n--- {py_file} ---\n"
-        repo_content += get_file_contents(py_file)
-    
-    return repo_content
+    return repo_content.strip()
 
 def generate_readme():
     try:
@@ -42,6 +34,11 @@ def generate_readme():
         
         # Scan repository and get content
         repo_content = scan_repository()
+        
+        # Only proceed if there's content to process
+        if not repo_content:
+            print("No .tf, .tfvars, .sh, or .py files found in the repository.")
+            return
         
         # Generate content for README using the Messages API
         message = client.messages.create(
@@ -52,10 +49,12 @@ def generate_readme():
                     "role": "user",
                     "content": f"""Based on the following repository content, generate a comprehensive README.md file. 
                     Include sections for Project Description, Installation, Usage, and Contributing. 
-                    Make sure to accurately reflect the purpose and functionality of the Terraform configurations, shell scripts, Python scripts, and Terraform variable files.
+                    Only include information about file types that are present in the repository content provided.
+                    Make sure to accurately reflect the purpose and functionality of the files present.
                     Group related files and their descriptions logically.
-                    Highlight any important variables or configuration options from the tfvars files.
-                    Explain how the Python scripts interact with or support the Terraform deployments, if applicable.
+                    If Terraform files are present, explain the infrastructure being provisioned.
+                    If shell scripts are present, explain their purpose and how to use them.
+                    If Python scripts are present, explain their functionality and how they relate to the project.
                     
                     Repository Content:
                     {repo_content}
