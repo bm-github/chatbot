@@ -1,4 +1,5 @@
-name: Generate README
+name: Generate README with Claude
+
 on:
   push:
     branches:
@@ -9,92 +10,30 @@ jobs:
   generate-readme:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Fetch all history for all branches and tags
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install anthropic
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install anthropic
 
-      - name: Analyse repository and generate README.md
-        run: |
-          python - <<EOF
-          import anthropic
-          import os
-          import subprocess
+    - name: Generate README
+      env:
+        AI_API_KEY: ${{ secrets.AI_API_KEY }}
+      run: |
+        python .github/scripts/generate_readme.py
 
-          client = anthropic.Anthropic(api_key=os.environ['AI_API_KEY'])
-
-          def get_repo_info():
-              info = {}
-              info['files'] = subprocess.getoutput('git ls-files').split('\n')
-              info['repo_name'] = os.path.basename(os.getcwd())
-              info['branches'] = subprocess.getoutput('git branch -r').split('\n')
-              info['last_commit'] = subprocess.getoutput('git log -1 --pretty=%B')
-              return info
-
-          def get_file_contents(file_path, max_lines=50):
-              try:
-                  with open(file_path, 'r') as f:
-                      return '\n'.join(f.readlines()[:max_lines])
-              except Exception as e:
-                  return f"Error reading file: {str(e)}"
-
-          repo_info = get_repo_info()
-          
-          # Get content of main files (adjust as needed)
-          main_files = [f for f in repo_info['files'] if f.endswith(('.py', '.tfvars', '.tf', '.ps1', '.sh', 'Dockerfile', '.yml', '.yaml'))]
-          file_contents = {file: get_file_contents(file) for file in main_files[:5]}  # Limit to first 5 main files
-
-          prompt = f"""
-          Based on the following information about a GitHub repository, generate a comprehensive README.md file in Markdown format:
-
-          Repository Name: {repo_info['repo_name']}
-          Files: {', '.join(repo_info['files'])}
-          Branches: {', '.join(repo_info['branches'])}
-          Last Commit Message: {repo_info['last_commit']}
-
-          Main file contents:
-          {file_contents}
-
-          Please include the following sections:
-          1. Project Title (use the repository name)
-          2. Description (infer from the codebase and file structure)
-          3. Installation
-
-          Ensure the README is informative, well-structured, and reflects the actual content and purpose of the repository.
-          """
-
-          message = client.messages.create(
-              model="claude-3-5-sonnet-20240620",
-              max_tokens=2000,
-              messages=[
-                  {"role": "user", "content": prompt}
-              ]
-          )
-
-          with open('README.md', 'w') as f:
-              f.write(message.content[0].text)
-          EOF
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Commit changes
-        run: |
-          git add README.md
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update README.md based on repository content" && git push)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Commit and push README if changed
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "GitHub Actions"
+        git add README.md
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update README.md" && git push)
