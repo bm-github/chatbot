@@ -51,7 +51,7 @@ jobs:
           repo_info = get_repo_info()
           
           # Get content of main files (adjust as needed)
-          main_files = [f for f in repo_info['files'] if f.endswith(('.py', '.js', '.java', '.cpp', '.h', 'Dockerfile', '.yml', '.yaml'))]
+          main_files = [f for f in repo_info['files'] if f.endswith(('.py', '.tfvars', '.tf', '.ps1', '.sh', 'Dockerfile', '.yml', '.yaml'))]
           file_contents = {file: get_file_contents(file) for file in main_files[:5]}  # Limit to first 5 main files
 
           prompt = f"""
